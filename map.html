@@ -39,13 +39,35 @@
 
         var g = svg.append("g");
 
-        d3.json("us-counties-10m.json", function (error, topology) {
-            g.selectAll("path")
-                .data(topojson.object(topology, topology.objects.states)
-                    .geometries)
-                .enter()
-                .append("path")
-                .attr("d", path)
+        d3.csv("college_cost.csv", function (error, data) {
+            // filter the data to only consider 4 year universities and a specific year
+            // this first case is tuition, private, 4-year colleges in 2021
+            var filtered_data = data.filter(function (d) {
+                return d.Year === "2021" && d.Expense == "Fees/Tuition" && d.Type === "Private" && d.Length === "4-year";
+            });
+
+            var mapping = d3.map();
+
+            filtered_data.forEach(function (d) {
+                mapping.set(d.State, +d.Value);
+            });
+
+            var color = d3.scale.linear()
+                .domain([0, d3.max(filtered_data, function (d) { return +d.Value; })]) // Adjust domain based on your data
+                .range(["#f7fbff", "#08306b"]);
+
+            d3.json("us-counties-10m.json", function (error, topology) {
+                g.selectAll("path")
+                    .data(topojson.object(topology, topology.objects.states)
+                        .geometries)
+                    .enter()
+                    .append("path")
+                    .attr("d", path)
+                    .style("fill", function (d) {
+                        var value = mapping.get(d.properties.name) || 0; // Get the corresponding value from the mapping
+                        return color(value);
+                    });
+            });
         });
     </script>
 </body>
