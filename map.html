@@ -44,7 +44,7 @@
         var g = svg.append("g");
 
         d3.json("us-counties-10m.json", function (error, topology) {
-            // Load the map once
+            // load the map
             g.selectAll("path")
                 .data(topojson.object(topology, topology.objects.states)
                     .geometries)
@@ -52,7 +52,9 @@
                 .append("path")
                 .attr("d", path);
 
+            // binding data and adding interactivity
             d3.csv("college_cost.csv", function (error, data) {
+                // create select year dropdown
                 var years = d3.set(data.map(function (d) { return d.Year; })).values();
 
                 d3.select("#dropdown_year")
@@ -63,6 +65,7 @@
                     .text(function (d) { return d; })
                     .attr("value", function (d) { return d; });
 
+                // filter data according to year when changed
                 d3.select("#dropdown_year").on("change", function () {
                     var curr_year = this.value;
 
@@ -80,7 +83,7 @@
                         .domain([0, d3.max(filtered_data, function (d) { return +d.Value; })])
                         .range(["#f7fbff", "#08306b"]);
 
-                    // Update colors of existing paths based on the filtered data
+                    // update map colors
                     g.selectAll("path")
                         .style("fill", function (d) {
                             var value = mapping.get(d.properties.name) || 0;
@@ -88,7 +91,10 @@
                         });
                 });
 
-                d3.select("#dropdown_year").dispatch("change");
+                // trigger event w/ default year (2013)
+                var event = new Event('change');
+                document.getElementById('dropdown_year').dispatchEvent(event);
+
             });
         });
     </script>
