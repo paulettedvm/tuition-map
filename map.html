@@ -22,6 +22,10 @@
 </head>
 
 <body>
+    <div id="dropdown_container">
+        <select id="dropdown_year"></select>
+    </div>
+
     <script type="text/javascript">
         var width = window.innerWidth;
         var height = window.innerHeight;
@@ -40,6 +44,19 @@
         var g = svg.append("g");
 
         d3.csv("college_cost.csv", function (error, data) {
+
+            // get years to make the dropdown
+            var years = d3.set(data.map(function (d) { return d.Year; })).values();
+
+            // append options to the dropdown select element
+            d3.select("#dropdown_year")
+                .selectAll("option")
+                .data(years)
+                .enter()
+                .append("option")
+                .text(function (d) { return d; })
+                .attr("value", function (d) { return d; });
+
             // filter the data to only consider 4 year universities and a specific year
             // this first case is tuition, private, 4-year colleges in 2021
             var filtered_data = data.filter(function (d) {
@@ -55,6 +72,7 @@
             var color = d3.scale.linear()
                 .domain([0, d3.max(filtered_data, function (d) { return +d.Value; })]) // Adjust domain based on your data
                 .range(["#f7fbff", "#08306b"]);
+
 
             d3.json("us-counties-10m.json", function (error, topology) {
                 g.selectAll("path")
