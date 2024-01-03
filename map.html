@@ -6,9 +6,9 @@
     <title>D3 World Map</title>
     <style>
         path {
-            stroke: white;
+            stroke: black;
             stroke-width: 0.5px;
-            fill: black;
+            fill: none;
         }
 
         svg {
@@ -23,12 +23,11 @@
 
 <body>
     <script type="text/javascript">
-        var width = 900;
-        var height = 600;
+        var width = window.innerWidth;
+        var height = window.innerHeight;
 
-        var projection = d3.geo.mercator()
-            .center([0, 0])
-            .scale(150)
+        var projection = d3.geo.albersUsa()
+            .scale(1000)
             .translate([width / 2, height / 2]);
 
         var svg = d3.select("body").append("svg")
