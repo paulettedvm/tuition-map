@@ -26,6 +26,12 @@
         <select id="dropdown_year"></select>
     </div>
 
+    <div id="radio_container">
+        <input type="radio" name="type" value="Private" checked> Private
+        <input type="radio" name="type" value="Public Out-of-State"> Public (Out-of-State)
+        <input type="radio" name="type" value="Public In-State"> Public (In-State)
+    </div>
+
     <script type="text/javascript">
         var width = window.innerWidth;
         var height = window.innerHeight;
@@ -65,13 +71,16 @@
                     .text(function (d) { return d; })
                     .attr("value", function (d) { return d; });
 
-                // filter data according to year when changed
-                d3.select("#dropdown_year").on("change", function () {
-                    var curr_year = this.value;
+                // filter data according to year and type when changed
+                function updateMap() {
+                    var curr_year = document.getElementById('dropdown_year').value;
+                    var curr_type = document.querySelector('input[name="type"]:checked').value;
 
                     var filtered_data = data.filter(function (d) {
-                        return d.Year == curr_year && d.Expense == "Fees/Tuition" && d.Type === "Private" && d.Length === "4-year";
+                        return d.Year == curr_year && d.Expense == "Fees/Tuition" && d.Type === curr_type && d.Length === "4-year";
                     });
+
+                    console.log(filtered_data);
 
                     var mapping = d3.map();
 
@@ -89,12 +98,23 @@
                             var value = mapping.get(d.properties.name) || 0;
                             return color(value);
                         });
-                });
+                }
 
-                // trigger event w/ default year (2013)
+                function triggerChangeEvent() {
+                    var event = new Event('change');
+                    this.dispatchEvent(event);
+                    console.log("clicked")
+                }
+
+                // trigger event on dropdown change and radio button change
+                d3.select("#dropdown_year").on("change", updateMap);
+                d3.selectAll('input[name="type"]').on("change", updateMap)
+                    .on("click", triggerChangeEvent);
+
+                // trigger event w/ default year (2013) and default type (Private)
                 var event = new Event('change');
                 document.getElementById('dropdown_year').dispatchEvent(event);
-
+                d3.select('input[value="Private"]').node().dispatchEvent(event);
             });
         });
     </script>
