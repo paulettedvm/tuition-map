@@ -11,10 +11,38 @@
             fill: none;
         }
 
+        /*
         svg {
             border-color: red;
             border-width: 5px;
             border-style: solid;
+        }
+        */
+
+        h1 {
+            text-align: center;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #dropdown_container {
+            padding-right: 20px;
+        }
+
+        #tooltip {
+            position: absolute;
+            z-index: 10;
+            background: #fff;
+            border: 1px solid #000;
+            padding: 5px;
+        }
+
+        #tooltip.hidden {
+            display: none;
         }
     </style>
     <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -22,14 +50,22 @@
 </head>
 
 <body>
-    <div id="dropdown_container">
-        <select id="dropdown_year"></select>
+    <h1>College Tuition Costs in the U.S.</h1>
+
+    <div id="controls">
+        <div id="dropdown_container">
+            <select id="dropdown_year"></select>
+        </div>
+
+        <div id="radio_container">
+            <input type="radio" name="type" value="Private" checked> Private
+            <input type="radio" name="type" value="Public Out-of-State"> Public (Out-of-State)
+            <input type="radio" name="type" value="Public In-State"> Public (In-State)
+        </div>
     </div>
 
-    <div id="radio_container">
-        <input type="radio" name="type" value="Private" checked> Private
-        <input type="radio" name="type" value="Public Out-of-State"> Public (Out-of-State)
-        <input type="radio" name="type" value="Public In-State"> Public (In-State)
+    <div id="tooltip" class="hidden">
+        <p id="value"></p>
     </div>
 
     <script type="text/javascript">
@@ -58,10 +94,12 @@
                 .append("path")
                 .attr("d", path);
 
-            // binding data and adding interactivity
-            d3.csv("college_cost.csv", function (error, data) {
+            // load college cost data
+            d3.csv("college_cost.csv", function (error, costData) {
+                if (error) throw error;
+
                 // create select year dropdown
-                var years = d3.set(data.map(function (d) { return d.Year; })).values();
+                var years = d3.set(costData.map(function (d) { return d.Year; })).values();
 
                 d3.select("#dropdown_year")
                     .selectAll("option")
@@ -76,7 +114,7 @@
                     var curr_year = document.getElementById('dropdown_year').value;
                     var curr_type = document.querySelector('input[name="type"]:checked').value;
 
-                    var filtered_data = data.filter(function (d) {
+                    var filtered_data = costData.filter(function (d) {
                         return d.Year == curr_year && d.Expense == "Fees/Tuition" && d.Type === curr_type && d.Length === "4-year";
                     });
 
@@ -97,13 +135,39 @@
                         .style("fill", function (d) {
                             var value = mapping.get(d.properties.name) || 0;
                             return color(value);
+                        })
+                        .on("mouseover", function (d) {
+                            var state = d.properties.name;
+                            var tuition = mapping.get(state) || 'N/A';
+
+                            // format into pretty numbers
+                            var formattedTuition = parseFloat(tuition).toLocaleString('en-US', {
+                                style: 'currency',
+                                currency: 'USD',
+                            });
+
+                            // show tooltip
+                            d3.select("#tooltip")
+                                .style("left", (d3.event.pageX + 10) + "px")
+                                .style("top", (d3.event.pageY - 15) + "px")
+                                .select("#value")
+                                .text(state + ": " + formattedTuition);
+
+
+                            d3.select("#tooltip").classed("hidden", false);
+
+                            // highlight state hovered
+                            d3.select(this).style("stroke", "white").style("stroke-width", 2);
+                        })
+                        .on("mouseout", function () {
+                            d3.select("#tooltip").classed("hidden", true);
+                            d3.select(this).style("stroke", "black").style("stroke-width", 0.5);
                         });
                 }
 
                 function triggerChangeEvent() {
                     var event = new Event('change');
                     this.dispatchEvent(event);
-                    console.log("clicked")
                 }
 
                 // trigger event on dropdown change and radio button change
