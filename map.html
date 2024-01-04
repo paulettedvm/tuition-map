@@ -5,39 +5,56 @@
     <meta charset="utf-8">
     <title>D3 World Map</title>
     <style>
-        path {
-            stroke: black;
-            stroke-width: 0.5px;
-            fill: none;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f4f4f4;
         }
-
-        /*
-        svg {
-            border-color: red;
-            border-width: 5px;
-            border-style: solid;
-        }
-        */
 
         h1 {
             text-align: center;
+            color: #333;
+            margin-bottom: 20px;
         }
 
         #controls {
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-bottom: 20px;
         }
 
         #dropdown_container {
-            padding-right: 20px;
+            margin-right: 20px;
+        }
+
+        #radio_container {
+            display: flex;
+            align-items: center;
+        }
+
+        #radio_container input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         #tooltip {
             position: absolute;
             z-index: 10;
             background: #fff;
-            border: 1px solid #000;
             padding: 5px;
         }
 
@@ -161,7 +178,7 @@
                         })
                         .on("mouseout", function () {
                             d3.select("#tooltip").classed("hidden", true);
-                            d3.select(this).style("stroke", "black").style("stroke-width", 0.5);
+                            d3.select(this).style("stroke", "none");
                         });
                 }
 
