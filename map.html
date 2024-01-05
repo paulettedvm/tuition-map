@@ -45,7 +45,7 @@
         svg {
             max-width: 100%;
             height: auto;
-            border: 1px solid #ddd;
+            border: 1px solid #ea0b0b;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
@@ -85,8 +85,14 @@
     </div>
 
     <script type="text/javascript">
+        function calculateAvailableHeight() {
+            var titleHeight = document.querySelector('h1').offsetHeight;
+            var controlsHeight = document.querySelector('#controls').offsetHeight;
+            return window.innerHeight - titleHeight - controlsHeight;
+        }
+
         var width = window.innerWidth;
-        var height = window.innerHeight;
+        var height = calculateAvailableHeight();
 
         var projection = d3.geo.albersUsa()
             .scale(1000)
@@ -134,8 +140,6 @@
                         return d.Year == curr_year && d.Expense == "Fees/Tuition" && d.Type === curr_type && d.Length === "4-year";
                     });
 
-                    console.log(filtered_data);
-
                     var mapping = d3.map();
 
                     filtered_data.forEach(function (d) {
@@ -146,7 +150,6 @@
                         .domain([0, d3.max(filtered_data, function (d) { return +d.Value; })])
                         .range(["#f7fbff", "#08306b"]);
 
-                    // update map colors
                     g.selectAll("path")
                         .style("fill", function (d) {
                             var value = mapping.get(d.properties.name) || 0;
@@ -156,23 +159,19 @@
                             var state = d.properties.name;
                             var tuition = mapping.get(state) || 'N/A';
 
-                            // format into pretty numbers
                             var formattedTuition = parseFloat(tuition).toLocaleString('en-US', {
                                 style: 'currency',
                                 currency: 'USD',
                             });
 
-                            // show tooltip
                             d3.select("#tooltip")
                                 .style("left", (d3.event.pageX + 10) + "px")
                                 .style("top", (d3.event.pageY - 15) + "px")
                                 .select("#value")
                                 .text(state + ": " + formattedTuition);
 
-
                             d3.select("#tooltip").classed("hidden", false);
 
-                            // highlight state hovered
                             d3.select(this).style("stroke", "white").style("stroke-width", 2);
                         })
                         .on("mouseout", function () {
@@ -186,16 +185,25 @@
                     this.dispatchEvent(event);
                 }
 
-                // trigger event on dropdown change and radio button change
                 d3.select("#dropdown_year").on("change", updateMap);
                 d3.selectAll('input[name="type"]').on("change", updateMap)
                     .on("click", triggerChangeEvent);
 
-                // trigger event w/ default year (2013) and default type (Private)
                 var event = new Event('change');
                 document.getElementById('dropdown_year').dispatchEvent(event);
                 d3.select('input[value="Private"]').node().dispatchEvent(event);
             });
+        });
+
+        // Update SVG dimensions on window resize
+        window.addEventListener('resize', function () {
+            width = window.innerWidth;
+            height = calculateAvailableHeight();
+            svg.attr('width', width).attr('height', height);
+
+            // Update projection and map elements here if needed
+            projection.translate([width / 2, height / 2]);
+            g.selectAll("path").attr("d", path);
         });
     </script>
 </body>
